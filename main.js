@@ -15,8 +15,9 @@ function resolveEnvPath() {
     const userDataEnv = path.join(app.getPath("userData"), ".env");
     const projectEnv = path.join(process.cwd(), ".env");
     // Prefer a project .env only when it already exists and userData has none
-    // (i.e. a developer running from the repo). Otherwise use userData.
-    if (!fs.existsSync(userDataEnv) && fs.existsSync(projectEnv)) {
+    // (i.e. a developer running from the repo). Otherwise use userData. An
+    // installed app never touches a .env that merely sits in its working directory.
+    if (!app.isPackaged && !fs.existsSync(userDataEnv) && fs.existsSync(projectEnv)) {
       return projectEnv;
     }
     return userDataEnv;
