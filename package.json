@@ -1,0 +1,174 @@
+{
+  "name": "jobai",
+  "version": "1.0.0",
+  "description": "AI Problem Solving Assistant",
+  "main": "main.js",
+  "scripts": {
+    "start": "node scripts/start.js",
+    "setup": "node scripts/setup-env.js",
+    "setup-ocr": "node scripts/setup-ocr.js",
+    "test": "node scripts/run-tests.js",
+    "test:electron": "node scripts/test-electron.js",
+    "dev": "node scripts/start.js --dev",
+    "test-speech": "node scripts/test-speech.js",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --mac --win --linux",
+    "dist": "npm run build",
+    "pack": "electron-builder --dir",
+    "clean": "rm -rf dist/",
+    "rebuild": "npm run clean && npm run build",
+    "release": "npm run clean && npm run build:all",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.2.0",
+    "@google/genai": "^2.9.0",
+    "dotenv": "^16.3.1",
+    "markdown": "^0.5.0",
+    "marked": "^15.0.12",
+    "microsoft-cognitiveservices-speech-sdk": "^1.40.0",
+    "node-record-lpcm16": "^1.0.1",
+    "prismjs": "^1.30.0",
+    "tesseract.js": "^5.1.1",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^4.7.1"
+  },
+  "devDependencies": {
+    "electron": "^29.1.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.jobai.app",
+    "productName": "JobAI",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*",
+      "!*.md",
+      "!.git/**/*",
+      "!.env*",
+      "!.venv-whisper/**/*",
+      "!.whisper-models/**/*",
+      "!bin/**/*",
+      "!scripts/__pycache__/**/*",
+      "!**/*.pyc",
+      "!eng.traineddata"
+    ],
+    "asarUnpack": [
+      "node_modules/tesseract.js/**/*",
+      "node_modules/tesseract.js-core/**/*",
+      "assests/icons/**/*",
+      "prompts/**/*",
+      "scripts/whisper_worker.py"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "darkModeSupport": true,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "JobAI uses the microphone to transcribe your speech locally with Whisper.",
+        "NSCameraUsageDescription": "JobAI does not record video; this entitlement is only present for media-capture compatibility.",
+        "NSScreenCaptureUsageDescription": "JobAI captures the screen to read on-screen content for AI assistance."
+      }
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
+      "sign": null
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assests/icons/app-icon.png",
+      "category": "Utility"
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xauth",
+        "libasound2t64",
+        "libgbm1",
+        "python3 (>= 3.10)",
+        "python3-venv",
+        "python3-pip"
+      ],
+      "recommends": [
+        "ffmpeg"
+      ],
+      "fpm": [
+        "--after-install=scripts/post-install-deb.sh"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "perMachine": false,
+      "include": "scripts/post-install-nsis.nsh",
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "JobAI-Setup-${version}.${ext}"
+    },
+    "dmg": {
+      "title": "JobAI Interview Assistant",
+      "backgroundColor": "#000000",
+      "window": {
+        "width": 600,
+        "height": 400
+      }
+    }
+  }
+}

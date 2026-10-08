@@ -1,0 +1,19 @@
+node_modules/
+.env
+.venv-whisper/
+.whisper-models/
+eng.traineddata
+dist/
+bin/
+.DS_Store
+*.log
+
+# Local secrets and settings (keep env.example, which has no secrets)
+.env.*
+!env.example
+secrets.enc.json
+
+# Local data and tooling
+.JobAI/
+*.part
+Thumbs.db

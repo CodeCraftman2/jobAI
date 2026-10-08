@@ -1,0 +1,41 @@
+Copyright (c) 2026 CodeCraftman2. All rights reserved.
+
+PROPRIETARY LICENSE
+
+This software and its source code (the "Software") are the exclusive property
+of the copyright holder. No license or other right is granted to you except
+as stated here.
+
+You MAY NOT, without the prior written permission of the copyright holder:
+
+  1. copy, reproduce, or duplicate the Software or any part of it;
+  2. modify, adapt, translate, or create derivative works of the Software;
+  3. distribute, publish, sublicense, sell, rent, lease, or otherwise make the
+     Software available to any third party;
+  4. use the Software or any part of it in another project, product, or
+     service, whether commercial or not;
+  5. remove or alter any copyright, license, or attribution notice.
+
+Viewing the source code does not grant any of the rights above. Where a
+hosting service's own terms of service give you limited rights (for example
+to view or fork a repository within that service), those rights apply only as
+far as those terms require and do not extend beyond them.
+
+THIRD-PARTY MATERIAL
+
+Parts of this repository come from other projects and remain under their own
+licenses, which this file does not replace or restrict. See the NOTICE file
+for the list. The dependencies installed through npm (node_modules) are
+likewise under their own licenses.
+
+NO WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+To request permission, contact the copyright holder through the GitHub
+profile of CodeCraftman2.

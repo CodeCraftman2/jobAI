@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobAI</title>
+  <link rel="stylesheet" href="./node_modules/prismjs/themes/prism-tomorrow.min.css" />
+  <link rel="stylesheet" href="./src/styles/panel.css" />
+</head>
+<body>
+  <div class="panel" id="panel">
+
+    <!-- Header -->
+    <header class="hdr drag">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">J</span>
+        <span class="brand-name">JobAI</span>
+      </div>
+      <div class="spacer"></div>
+      <div class="pill status nodrag" id="status" data-state="ready"><i class="dot"></i><span id="statusText">Ready</span></div>
+      <button class="pill-btn nodrag" id="clearBtn" title="Clear session"><svg class="ic" data-icon="trash"></svg><span>Clear</span></button>
+      <button class="icon-btn nodrag" id="settingsBtn" title="Settings (Ctrl+,)"><svg class="ic" data-icon="settings"></svg></button>
+      <span class="vsep"></span>
+      <div class="grip" title="Drag to move"><svg class="ic" data-icon="grip"></svg></div>
+    </header>
+
+    <!-- Transcript of the system audio (always on) -->
+    <section class="transcript" id="transcriptSec">
+      <div class="sec-head">
+        <svg class="ic wave" data-icon="wave"></svg>
+        <span class="label">TRANSCRIPT</span><span class="label dim">· SYSTEM AUDIO</span>
+        <div class="spacer"></div>
+        <span class="pill small" id="sourcePill"><i class="dot"></i><span>Other side of the call</span></span>
+      </div>
+      <div class="transcript-body" id="transcriptBody">
+        <p class="empty">Listening for questions. What the other side says shows up here.</p>
+      </div>
+    </section>
+
+    <!-- Answer -->
+    <section class="answer" id="answerSec">
+      <div class="sec-head answer-head">
+        <span class="label strong">ANSWER</span>
+        <span class="question" id="answerQuestion"></span>
+        <div class="rule"></div>
+        <span class="meta" id="answerMeta"></span>
+        <div class="seg small nodrag" id="viewSeg">
+          <button class="seg-btn active" data-view="latest"><svg class="ic" data-icon="chat"></svg><span>Latest</span></button>
+          <button class="seg-btn" data-view="all"><svg class="ic" data-icon="chats"></svg><span>All</span></button>
+        </div>
+      </div>
+      <div class="answer-body" id="answerBody">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon"><svg class="ic" data-icon="sparkles"></svg></div>
+          <h3>Listening and watching</h3>
+          <p>Type a question below, press <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>S</kbd> to capture the screen, or switch to <b>Listen</b> to answer questions from a call.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <div class="actions">
+      <span class="label" title="Listens to system audio and captures the screen when a question is heard">AUTO</span>
+      <div class="listen-controls" id="listenControls">
+        <canvas id="viz" width="360" height="34"></canvas>
+        <span class="auto-note">audio + screen</span>
+        <button class="act accent" id="listenBtn" title="Stop or start both listening and automatic screen capture. Start or stop: Ctrl+Shift+M. Stop only: Ctrl+Shift+X"><svg class="ic" data-icon="mic"></svg><span id="listenLabel">Stop</span></button>
+      </div>
+      <div class="spacer"></div>
+      <span class="model" id="modelName" title="Answering model"><svg class="ic" data-icon="sparkles"></svg><span>Gemini</span></span>
+    </div>
+
+    <!-- Composer -->
+    <div class="composer">
+      <input id="askInput" type="text" autocomplete="off" spellcheck="false" placeholder="Ask anything, or press Ctrl+Shift+S to capture the screen…" />
+      <span class="hint-key" title="Enter to send">↵</span>
+      <button class="send" id="sendBtn" title="Send" disabled><svg class="ic" data-icon="arrowUp"></svg></button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="foot">
+      <span class="label">SIZE:</span>
+      <div class="seg tiny nodrag" id="sizeSeg">
+        <button class="seg-btn" data-size="S">S</button>
+        <button class="seg-btn active" data-size="M">M</button>
+        <button class="seg-btn" data-size="L">L</button>
+        <button class="seg-btn" data-size="XL">XL</button>
+      </div>
+      <span class="vsep"></span>
+      <label class="label" for="transSlider" title="How see-through the window is">TRANSPARENCY:</label>
+      <input type="range" class="slider nodrag" id="transSlider" min="0" max="100" step="1" value="10" aria-label="Window transparency" />
+      <span class="pct" id="transPct">10%</span>
+      <div class="spacer"></div>
+      <button class="hide-hint nodrag" id="hideBtn" title="Hide JobAI"><kbd>Ctrl</kbd><kbd>\</kbd><span>hide</span></button>
+    </footer>
+  </div>
+
+  <script src="./node_modules/prismjs/prism.js"></script>
+  <script src="./node_modules/prismjs/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="./src/ui/panel.js"></script>
+</body>
+</html>

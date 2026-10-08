@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link href="./src/styles/common.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+
+        .settings-container {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(20, 20, 20, 0.4) 100%);
+            backdrop-filter: blur(25px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .settings-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-app-region: drag;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            -webkit-app-region: no-drag;
+        }
+
+        .settings-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            color: rgba(255, 255, 255, 0.9);
+            max-height: calc(100vh - 70px);
+        }
+
+        .settings-section {
+            margin-bottom: 24px;
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .settings-section-content {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .settings-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .settings-item-label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .settings-item-description {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .btn.btn-danger {
+            background: rgba(244, 67, 54, 0.8);
+        }
+
+        .btn.btn-danger:hover {
+            background: rgba(244, 67, 54, 1);
+        }
+
+        .btn.btn-quit {
+            background: rgba(255, 71, 87, 0.8);
+        }
+
+        .btn.btn-quit:hover {
+            background: rgba(255, 71, 87, 1);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 13px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Stealth scrollbar */
+        ::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 1px;
+        }
+
+        /* Feedback notification styling */
+        #tempFeedback {
+            font-size: 10px !important;
+            padding: 6px 10px !important;
+            background: rgba(0, 0, 0, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            backdrop-filter: blur(5px) !important;
+        }
+
+        /* Additional styles for new sections */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .icon-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 12px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .icon-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .icon-option.selected {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .icon-option img {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 8px;
+            object-fit: contain;
+        }
+
+        .icon-option div {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        select.input-field {
+            cursor: pointer;
+            padding-right: 30px;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255, 255, 255, 0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 16px;
+        }
+
+        select.input-field option {
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 8px;
+        }
+
+        .settings-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .settings-subtitle { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.7; padding: 14px 0 2px; }
+        .gw-btn { cursor: pointer; width: auto; }
+        .gw-btn:disabled { opacity: 0.5; cursor: default; }
+        .gw-status { font-size: 11px; opacity: 0.85; }
+        .gw-status.ok { color: #4ade80; opacity: 1; }
+        .gw-status.err { color: #f87171; opacity: 1; }
+        .gw-box { border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 8px; font-size: 12px; }
+        .gw-list { max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+        .gw-list button { text-align: left; background: transparent; border: 0; color: inherit; font: inherit; font-family: monospace; padding: 4px 6px; border-radius: 6px; cursor: pointer; }
+        .gw-list button:hover { background: rgba(255,255,255,0.08); }
+        .gw-row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; font-family: monospace; }
+        .gw-row .ok { color: #4ade80; } .gw-row .err { color: #f87171; }
+        .settings-note {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.65);
+            line-height: 1.4;
+        }
+
+        .settings-note code {
+            color: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+    <style>
+        /* JobAI panel look: same palette, shapes and type as panel.html */
+        :root {
+            --bg: #161618; --bg-2: #1c1c1f; --bg-3: #232327;
+            --line: rgba(255, 255, 255, 0.09); --line-strong: rgba(255, 255, 255, 0.18);
+            --fg: #f4f4f5; --fg-2: #c9c9ce; --muted: #8d8d95;
+            --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+        }
+        body { font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif; }
+        .settings-container {
+            background: var(--bg); backdrop-filter: none; border-radius: 16px;
+            border: 1px solid var(--line); box-shadow: none;
+        }
+        .settings-header { background: transparent; backdrop-filter: none; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+        .header-title { color: var(--fg); font-size: 15px; font-weight: 650; text-shadow: none; }
+        .settings-content { color: var(--fg-2); }
+        .settings-section-title {
+            font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--muted); font-weight: 600;
+        }
+        .settings-section-content { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; }
+        .settings-item { border-radius: 10px; }
+        .settings-item:hover { background: rgba(255, 255, 255, 0.03); }
+        .settings-item.is-disabled { opacity: 0.45; }
+        .settings-item.is-disabled select { cursor: not-allowed; }
+        .settings-item-label { color: var(--fg); font-weight: 560; }
+        .settings-item-description { color: var(--muted); }
+        .btn {
+            background: transparent; border: 1px solid var(--line); border-radius: 999px;
+            padding: 6px 14px; color: var(--fg-2); font-weight: 560;
+        }
+        .btn:hover { background: var(--bg-2); color: var(--fg); }
+        .btn.btn-danger, .btn.btn-quit { background: rgba(248, 113, 113, 0.14); border-color: rgba(248, 113, 113, 0.35); color: #fca5a5; }
+        .btn.btn-danger:hover, .btn.btn-quit:hover { background: rgba(248, 113, 113, 0.24); }
+        .input-field { background: var(--bg); border: 1px solid var(--line-strong); border-radius: 10px; color: var(--fg); }
+        .input-field:focus { border-color: rgba(255, 255, 255, 0.34); }
+        select.input-field option { background: #1c1c1f; color: #f4f4f5; }
+        .icon-option { background: var(--bg); border-color: var(--line); border-radius: 10px; }
+        .icon-option:hover { background: var(--bg-3); border-color: var(--line-strong); }
+        .icon-option.selected { background: var(--bg-3); border-color: rgba(255, 255, 255, 0.34); }
+        .settings-note { color: var(--muted); }
+
+        .shortcuts .sc-group {
+            font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--muted); margin: 6px 0 6px; padding: 0 8px;
+        }
+        .shortcuts .sc-group:not(:first-child) { margin-top: 16px; }
+        .sc-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 8px; border-radius: 8px; }
+        .sc-row:hover { background: rgba(255, 255, 255, 0.03); }
+        .sc-label { color: var(--fg-2); font-size: 13px; }
+        .sc-keys { display: inline-flex; gap: 5px; flex: none; }
+        .sc-keys kbd {
+            font-family: var(--mono); font-size: 11px; padding: 2px 7px; color: var(--fg-2); background: var(--bg);
+            border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 6px;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <div class="settings-header">
+            <div class="header-title">
+                <i class="fas fa-cog"></i>
+                Settings
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-quit" id="quitButton">
+                    <i class="fas fa-power-off"></i>
+                    Quit
+                </button>
+                <button class="btn" id="closeButton">
+                    <i class="fas fa-times"></i>
+                    Close
+                </button>
+            </div>
+        </div>
+
+        <div class="settings-content">
+            <div class="settings-section">
+                <div class="settings-section-title">
+                    <i class="fas fa-code"></i>
+                    Language & Skills
+                </div>
+                <div class="settings-section-content">
+                    <div class="settings-item" id="codingLanguageItem">
+                        <div>
+                            <div class="settings-item-label">Coding Language</div>
+                            <div class="settings-item-description" id="codingLanguageDesc">Language used for code in answers</div>
+                        </div>
+                        <select class="input-field" id="codingLanguage">
+                            <option value="cpp">C++</option>
+                            <option value="c">C</option>
+                            <option value="python">Python</option>
+                            <option value="java">Java</option>
+                            <option value="javascript">JavaScript</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div class="settings-item-label">Active Skill</div>
+                            <div class="settings-item-description">DSA solves coding-interview problems with optimal code. Interview handles everything else: behavioral, system design, technical concepts, programming, DevOps, data science and negotiation.</div>
+                        </div>
+                        <select class="input-field" id="activeSkill">
+                            <option value="dsa">DSA</option>
+                            <option value="interview">Interview</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div class="settings-item-label">Read the screen on spoken questions</div>
+                            <div class="settings-item-description">With recording on, a spoken question such as "answer it" captures the screen and sends the text read from it (OCR) to the AI. Off: the screen is only read when you press Ctrl+Shift+S</div>
+                        </div>
+                        <input type="checkbox" id="autoScreen">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">
+                    <i class="fas fa-icons"></i>
+                    App Icon
+                </div>
+                <div class="settings-section-content">
+                    <div class="icon-grid" id="iconGrid">
+                        <div class="icon-option" data-icon="terminal">
+                            <img src="./assests/icons/terminal.png" alt="Terminal">
+                            <div>Terminal</div>
+                        </div>
+                        <div class="icon-option" data-icon="activity">
+                            <img src="./assests/icons/activity.png" alt="Activity">
+                            <div>Activity</div>
+                        </div>
+                        <div class="icon-option" data-icon="settings">
+                            <img src="./assests/icons/settings.png" alt="Settings">
+                            <div>Settings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">
+                    <i class="fas fa-microphone"></i>
+                    Speech Recognition
+                </div>
+                <div class="settings-section-content">
+                    <div class="settings-item">
+                        <div>
+                            <div class="settings-item-label">Speech Provider</div>
+                            <div class="settings-item-description">Choose Azure Speech or a local OpenAI Whisper CLI</div>
+                        </div>
+                        <select class="input-field" id="speechProvider">
+                            <option value="azure">Azure Speech</option>
+                            <option value="whisper">Local Whisper</option>
+                        </select>
+                    </div>
+
+                    <!-- Azure fields (shown only when Azure is selected) -->
+                    <div id="azureFields" class="settings-group">
+                        <div class="settings-item">
+                            <div>
+                                <div class="settings-item-label">Azure Speech Key</div>
+                                <div class="settings-item-description">Your Azure Cognitive Services API key</div>
+                            </div>
+                            <input type="password" class="input-field" id="azureKey" placeholder="Enter your Azure key">
+                        </div>
+                        <div class="settings-item">
+                            <div>
+                                <div class="settings-item-label">Azure Region</div>
+                                <div class="settings-item-description">Your Azure service region</div>
+                            </div>
+                            <input type="text" class="input-field" id="azureRegion" placeholder="e.g. eastus">
+                        </div>
+                    </div>
+
+                    <!-- Whisper fields (shown only when Whisper is selected) -->
+                    <div id="whisperFields" class="settings-group">
+                        <div class="settings-item">
+                            <div class="settings-stack">
+                                <div>
+                                    <div class="settings-item-label">Whisper Command</div>
+                                    <div class="settings-item-description">CLI command for local Whisper, such as <code>whisper</code> or <code>python3 -m whisper</code></div>
+                                </div>
+                                <input type="text" class="input-field" id="whisperCommand" placeholder="whisper" style="max-width: 100%;">
+                            </div>
+                        </div>
+                        <div class="settings-item">
+                            <div>
+                                <div class="settings-item-label">Whisper Model</div>
+                                <div class="settings-item-description">Local model name used by the Whisper CLI</div>
+                            </div>
+                            <input type="text" class="input-field" id="whisperModel" placeholder="small">
+                        </div>
+                        <div class="settings-item">
+                            <div>
+                                <div class="settings-item-label">Whisper Language</div>
+                                <div class="settings-item-description">Language code or auto-detection for local transcription</div>
+                            </div>
+                            <input type="text" class="input-field" id="whisperLanguage" placeholder="auto">
+                        </div>
+                        <div class="settings-item">
+                            <div>
+                                <div class="settings-item-label">Compute Device</div>
+                                <div class="settings-item-description">Automatically use CUDA when available, or force CPU/GPU</div>
+                            </div>
+                            <select class="input-field" id="whisperDevice">
+                                <option value="auto">Auto</option>
+                                <option value="cpu">CPU</option>
+                                <option value="cuda">CUDA</option>
+                            </select>
+                        </div>
+                        <div class="settings-item">
+                            <div>
+                                <div class="settings-item-label">Capture Mode</div>
+                                <div class="settings-item-description">Manual records until you press stop; VAD detects natural pauses</div>
+                            </div>
+                            <select class="input-field" id="whisperCaptureMode">
+                                <option value="vad">Automatic (VAD)</option>
+                                <option value="manual">Manual start/stop</option>
+                            </select>
+                        </div>
+                        <div class="settings-item">
+                            <div>
+                                <div class="settings-item-label">Whisper Segment Length</div>
+                                <div class="settings-item-description">Chunk size in milliseconds for local transcription</div>
+                            </div>
+                            <input type="number" class="input-field" id="whisperSegmentMs" placeholder="4000" min="2000" step="500">
+                        </div>
+                        <div class="settings-note">
+                            Local Whisper runs on this machine and needs a Whisper CLI installed. These settings apply immediately for the current app session and are also written back to <code>.env</code> so they persist across restarts.
+                        </div>
+                    </div>
+
+                    <div id="azureFieldsNote" class="settings-note">
+                        Azure credentials apply immediately and are also written back to <code>.env</code> so they persist across restarts.
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">
+                    <i class="fas fa-robot"></i>
+                    AI Model Settings
+                </div>
+                <div class="settings-section-content">
+                    <div class="settings-item">
+                        <div>
+                            <div class="settings-item-label">AI Provider</div>
+                            <div class="settings-item-description">Which service answers your questions</div>
+                        </div>
+                        <select class="input-field" id="llmProvider">
+                            <option value="gemini">Google Gemini</option>
+                            <option value="gateway">Custom provider (any model)</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div class="settings-item-label">Model routing</div>
+                            <div class="settings-item-description">Auto: Interview mode uses Gemini 3.1 Flash-Lite (fast) and Coding mode uses the custom provider's default model, when both keys are set. Otherwise the provider above answers.</div>
+                        </div>
+                        <select class="input-field" id="llmRouting">
+                            <option value="auto">Auto (by mode)</option>
+                            <option value="off">Always start with the default model</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div class="settings-item-label">Google API Key</div>
+                            <div class="settings-item-description">Your Google API key for Gemini models</div>
+                        </div>
+                        <input type="password" class="input-field" id="geminiKey" placeholder="Enter your Google API key">
+                    </div>
+
+                    <div class="settings-subtitle">Custom provider (any model)</div>
+                    <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:10px;">
+                        <div>
+                            <div class="settings-item-label">Paste a curl command</div>
+                            <div class="settings-item-description">Fills the base URL, API key, credential kind and model from a working curl command</div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:8px;width:100%;">
+                            <textarea class="input-field" id="curlInput" rows="8" spellcheck="false" style="min-height:160px;font-family:Consolas,'Cascadia Mono',monospace;font-size:13px;line-height:1.5;resize:vertical;white-space:pre-wrap;overflow-wrap:anywhere;" placeholder="curl https://openrouter.ai/api/v1/chat/completions \&#10;  -H &quot;Authorization: Bearer sk-or-...&quot; \&#10;  -d '{&quot;model&quot;:&quot;openai/gpt-5&quot;,...}'"></textarea>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <button type="button" class="input-field gw-btn" id="curlApplyBtn">Apply</button>
+                                <span id="curlStatus" class="gw-status"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div class="settings-item-label">Gateway base URL</div>
+                            <div class="settings-item-description">Full URL of any OpenAI- or Anthropic-compatible endpoint, without /chat/completions or /messages. The API format is detected automatically</div>
+                        </div>
+                        <input type="text" class="input-field" id="gatewayBaseUrl" placeholder="https://openrouter.ai/api/v1">
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div class="settings-item-label">API key</div>
+                            <div class="settings-item-description">Key for the gateway above</div>
+                        </div>
+                        <input type="password" class="input-field" id="gatewayKey" placeholder="Enter your API key">
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div class="settings-item-label">Credential kind</div>
+                            <div class="settings-item-description">How the key is sent. When set, only that kind is used (no fallback). Auto picks one for the endpoint</div>
+                        </div>
+                        <select class="input-field" id="gatewayAuth">
+                            <option value="">Auto</option>
+                            <option value="bearer">Bearer token (Authorization)</option>
+                            <option value="x-api-key">API key (x-api-key)</option>
+                        </select>
+                    </div>
+                    <div class="settings-item" style="display:none">
+                        <div>
+                            <div class="settings-item-label">API format</div>
+                            <div class="settings-item-description">Request style the gateway speaks. Auto uses Anthropic Messages for api.anthropic.com and OpenRouter, OpenAI-compatible for everything else</div>
+                        </div>
+                        <select class="input-field" id="gatewayFormat">
+                            <option value="">Auto</option>
+                            <option value="openai">OpenAI-compatible (/chat/completions)</option>
+                            <option value="anthropic">Anthropic Messages (/messages)</option>
+                        </select>
+                    </div>
+                    <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:10px;">
+                        <div>
+                            <div class="settings-item-label">Model list</div>
+                            <div class="settings-item-description">One model per line. The first entry is the default; the rest are tried if it fails</div>
+                        </div>
+                        <textarea class="input-field" id="gatewayModels" rows="4" spellcheck="false" style="font-family:monospace;font-size:12px;resize:vertical;" placeholder="gpt-5&#10;gemini-3.5-flash"></textarea>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <button type="button" class="input-field gw-btn" id="gwAutoPickBtn" title="Tests the gateway's chat models with your key and keeps the fastest ones that answer">Auto-pick working models</button>
+                            <button type="button" class="input-field gw-btn" id="gwDiscoverBtn">Browse all models</button>
+                            <button type="button" class="input-field gw-btn" id="gwTestModelsBtn">Test models</button>
+                            <span id="gwModelStatus" class="gw-status"></span>
+                        </div>
+                        <div id="gwDiscoverBox" class="gw-box" hidden>
+                            <input type="text" class="input-field" id="gwDiscoverFilter" placeholder="Filter models" style="width:100%;margin-bottom:6px;">
+                            <div id="gwDiscoverList" class="gw-list"></div>
+                        </div>
+                        <div id="gwTestResults" class="gw-box" hidden></div>
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div class="settings-item-label">Free models only</div>
+                            <div class="settings-item-description">When Auto-pick runs, test only models the gateway marks as free (Kilo and OpenRouter do; NVIDIA does not, so all of its models are tested)</div>
+                        </div>
+                        <input type="checkbox" id="gatewayFreeOnly">
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div class="settings-item-label">Model discovery</div>
+                            <div class="settings-item-description">When the model list is empty, test the gateway's chat models at launch and use the fastest ones that answer (same as Auto-pick). A model that fails is skipped for a few minutes and retried later</div>
+                        </div>
+                        <input type="checkbox" id="gatewayDiscovery">
+                    </div>
+                    <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:8px;">
+                        <div>
+                            <div class="settings-item-label">Test API</div>
+                            <div class="settings-item-description">Checks that the base URL, API key, credential kind and format are accepted (uses the values above, saved or not)</div>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <button type="button" class="input-field gw-btn" id="gwTestApiBtn">Test API</button>
+                            <span id="gwApiStatus" class="gw-status"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">
+                    <i class="fas fa-keyboard"></i>
+                    Keyboard Shortcuts
+                </div>
+                <div class="settings-section-content shortcuts">
+                    <div class="sc-group">Works anywhere</div>
+                    <div class="sc-row"><span class="sc-label">Capture the screen and analyze it</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>S</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label">Show or hide JobAI</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>\</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label">Focus the input box</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>I</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label">Start or stop auto mode (audio + screen)</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>M</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label">Stop auto mode (audio + screen)</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>X</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label">Open or close settings</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>D</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label">Open settings (alternative)</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>,</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label">Move the window (12 px a step)</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>Arrow keys</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label">Clear the conversation</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>\</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label">Toggle click-through</span><span class="sc-keys"><kbd>Alt</kbd><kbd>A</kbd></span></div>
+                    <div class="sc-group">Inside a window</div>
+                    <div class="sc-row"><span class="sc-label">Send the message (input box)</span><span class="sc-keys"><kbd>Enter</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label">Leave the input box</span><span class="sc-keys"><kbd>Esc</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label">Close settings</span><span class="sc-keys"><kbd>Esc</kbd></span></div>
+                    <div class="settings-note">On macOS, use Cmd instead of Ctrl.</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="./src/ui/curl-parser.js"></script>
+    <script src="./src/ui/settings-window.js"></script>
+</body>
+</html>

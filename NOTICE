@@ -1,0 +1,25 @@
+JobAI
+Copyright (c) 2026 CodeCraftman2. All rights reserved. See LICENSE.
+
+This repository includes material from other projects. That material is not
+covered by the LICENSE file above; it stays under its original license, and
+its original copyright notices must be kept.
+
+1. OpenCluely
+   Author:  TechyCSR
+   Source:  https://github.com/TechyCSR/OpenCluely
+   License: Apache License 2.0 (as listed by GitHub for that repository; the
+            copy of the project's web page in webapp/ is marked "MIT License -
+            TechyCSR"). Check the upstream repository for the license that
+            applies to the version you rely on.
+   Where:   the webapp/ folder, and any other file that still carries material
+            from that project.
+
+2. Third-party packages
+   Installed with npm (see package.json and package-lock.json). Each package
+   keeps its own license, found in its folder under node_modules.
+
+3. Tesseract OCR language data
+   The English OCR data (eng.traineddata) is downloaded at run time from the
+   tesseract.js project data host. It is not stored in this repository and is
+   licensed by its authors (Apache License 2.0).
