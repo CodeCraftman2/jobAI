@@ -40,7 +40,7 @@ class WindowManager {
         maxWidth: 1000,
         useContentSize: true,
         file: 'panel.html',
-        title: 'JobAI'
+        title: 'Code'
       },
       settings: {
         width: 400,
@@ -63,7 +63,7 @@ class WindowManager {
         width: 760,
         height: 740,
         file: 'onboarding.html',
-        title: 'Welcome to JobAI',
+        title: 'Welcome to Code',
         frame: false,
         titleBarStyle: 'hidden',
         transparent: true,

@@ -44,7 +44,7 @@
   },
   "build": {
     "appId": "com.jobai.app",
-    "productName": "JobAI",
+    "productName": "Code",
     "directories": {
       "output": "dist"
     },
@@ -90,9 +90,9 @@
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "JobAI uses the microphone to transcribe your speech locally with Whisper.",
-        "NSCameraUsageDescription": "JobAI does not record video; this entitlement is only present for media-capture compatibility.",
-        "NSScreenCaptureUsageDescription": "JobAI captures the screen to read on-screen content for AI assistance."
+        "NSMicrophoneUsageDescription": "Code uses the microphone to transcribe your speech locally with Whisper.",
+        "NSCameraUsageDescription": "Code does not record video; this entitlement is only present for media-capture compatibility.",
+        "NSScreenCaptureUsageDescription": "Code captures the screen to read on-screen content for AI assistance."
       }
     },
     "win": {
@@ -162,10 +162,10 @@
       "perMachine": false,
       "include": "scripts/post-install-nsis.nsh",
       "deleteAppDataOnUninstall": false,
-      "artifactName": "JobAI-Setup-${version}.${ext}"
+      "artifactName": "Code-Setup.${ext}"
     },
     "dmg": {
-      "title": "JobAI Interview Assistant",
+      "title": "Code Interview Assistant",
       "backgroundColor": "#000000",
       "window": {
         "width": 600,

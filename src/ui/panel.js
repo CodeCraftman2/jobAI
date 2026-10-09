@@ -299,7 +299,7 @@
     box.id = 'emptyState';
     box.innerHTML = `<div class="empty-icon">${iconSvg('sparkles')}</div>` +
       '<h3>Listening and watching</h3>' +
-      '<p>JobAI listens to system audio and captures your screen when a question is heard. ' +
+      '<p>Code listens to system audio and captures your screen when a question is heard. ' +
       'You can also type a question below, or press <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>S</kbd> to capture the screen yourself.</p>';
     return box;
   }

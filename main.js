@@ -164,7 +164,7 @@ class ApplicationController {
 
     // Window configurations for reference
     this.windowConfigs = {
-      main: { title: "JobAI" },
+      main: { title: "Code" },
       settings: { title: "Settings" },
     };
 
