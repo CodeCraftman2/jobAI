@@ -301,7 +301,7 @@
     box.innerHTML = `<div class="empty-icon">${iconSvg('sparkles')}</div>` +
       '<h3>Listening and watching</h3>' +
       '<p><span data-app-name>Code</span> listens to system audio and captures your screen when a question is heard. ' +
-      'You can also type a question below, or press <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>S</kbd> to capture the screen yourself.</p>';
+      'You can also type a question below, or press <kbd>Alt</kbd> <kbd>S</kbd> to capture the screen yourself.</p>';
     return box;
   }
 

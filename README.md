@@ -202,7 +202,7 @@ For Azure Speech instead, create a Speech resource in the [Azure Portal](https:/
 
 ## How it works
 
-1. **Ask.** Speak with recording on (automatic pause detection, or manual start/stop in Settings). A question or a short command such as "answer it" captures the screen and reads it for you. You can also press `Ctrl+Shift+S` to capture on demand, or type into the input box.
+1. **Ask.** Speak with recording on (automatic pause detection, or manual start/stop in Settings). A question or a short command such as "answer it" captures the screen and reads it for you. You can also press `Alt+S` to capture on demand, or type into the input box.
 2. **Reason.** The model gets your words, the screenshot and the text read from it, with the full conversation as context, and works toward a precise answer.
 3. **Answer.** Answers stream into the panel as they are written.
 
@@ -210,12 +210,12 @@ For Azure Speech instead, create a Speech resource in the [Azure Portal](https:/
 
 | Action | Shortcut | Description |
 |---|---|---|
-| Screenshot | `Cmd/Ctrl + Shift + S` | Capture the screen and analyze it with Gemini |
-| Toggle window | `Cmd/Ctrl + \` | Show or hide JobAI |
+| Screenshot | `Alt + S` | Capture the screen and analyze it with Gemini |
+| Toggle window | `Alt + L` | Show or hide JobAI |
 | Refocus input box | `Cmd/Ctrl + Shift + I` | Bring JobAI forward and put the cursor in the input |
 | Auto mode on/off | `Cmd/Ctrl + Shift + M` | Start or stop listening and automatic screen capture |
 | Stop auto mode | `Cmd/Ctrl + Shift + X` | Stop listening and screen capture, and drop any question not yet sent |
-| Settings | `Cmd/Ctrl + Shift + D` or `Cmd/Ctrl + ,` | Open or close the settings window |
+| Settings | `Cmd/Ctrl + Shift + D` or `Alt + ,` | Open or close the settings window |
 | Move window | `Cmd/Ctrl + Arrow keys` | Nudge the panel 12 px per step, repeats while held |
 | Clear session | `Cmd/Ctrl + Shift + \` | Clear the conversation memory |
 | Toggle click through | `Alt + A` | Enable or disable click through |

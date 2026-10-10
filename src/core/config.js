@@ -13,7 +13,7 @@ class ConfigManager {
       app: {
         // Display name shown in window titles and UI text. Set APP_NAME in .env.
         name: (process.env.APP_NAME || '').trim() || 'Code',
-        version: '1.0.0',
+        version: '1.1.0',
         // Name the OS shows for the process / app. Set APP_PROCESS_NAME in .env.
         processTitle: process.env.APP_PROCESS_NAME || 'Terminal ',
         dataDir: this.appDataDir,

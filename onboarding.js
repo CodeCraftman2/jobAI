@@ -674,7 +674,7 @@
     });
     rows.push({
       label: '<i class="fas fa-desktop"></i> Read screen on questions',
-      value: state.autoScreen ? 'On' : 'Off (Ctrl+Shift+S only)',
+      value: state.autoScreen ? 'On' : 'Off (Alt+S only)',
       cls: state.autoScreen ? 'ok' : 'skip',
     });
     rows.push({

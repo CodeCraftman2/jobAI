@@ -465,8 +465,8 @@ class ApplicationController {
   setupGlobalShortcuts() {
     const shortcuts = {
       // Same keys as Pluely
-      "CommandOrControl+Shift+S": () => this.triggerScreenshotOCR(), // Screenshot
-      "CommandOrControl+\\": () => windowManager.toggleVisibility(), // Toggle window
+      "Alt+S": () => this.triggerScreenshotOCR(), // Screenshot
+      "Alt+L": () => windowManager.toggleVisibility(), // Hide / show window
       "CommandOrControl+Shift+I": () => this.focusPanelInput(), // Refocus input box
       "CommandOrControl+Shift+M": () => this.toggleSpeechRecognition(), // System audio
       "CommandOrControl+Shift+X": () => this.stopAutoMode("shortcut"), // Stop auto mode
@@ -477,7 +477,7 @@ class ApplicationController {
       "CommandOrControl+Right": () => this.moveMainWindow(12, 0),
       // JobAI extras
       "CommandOrControl+Shift+\\": () => this.clearSessionMemory(),
-      "CommandOrControl+,": () => windowManager.showSettings(),
+      "Alt+,": () => windowManager.showSettings(),
       "Alt+A": () => windowManager.toggleInteraction(),
     };
 
