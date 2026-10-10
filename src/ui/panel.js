@@ -284,6 +284,7 @@
     const entries = visibleEntries();
     if (!entries.length) {
       el.answerBody.appendChild(buildEmptyState());
+      if (window.applyAppName) window.applyAppName();
     } else {
       entries.forEach((entry) => el.answerBody.appendChild(buildEntryEl(entry)));
       highlight(el.answerBody);
@@ -299,7 +300,7 @@
     box.id = 'emptyState';
     box.innerHTML = `<div class="empty-icon">${iconSvg('sparkles')}</div>` +
       '<h3>Listening and watching</h3>' +
-      '<p>Code listens to system audio and captures your screen when a question is heard. ' +
+      '<p><span data-app-name>Code</span> listens to system audio and captures your screen when a question is heard. ' +
       'You can also type a question below, or press <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>S</kbd> to capture the screen yourself.</p>';
     return box;
   }

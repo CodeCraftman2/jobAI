@@ -11,9 +11,11 @@ class ConfigManager {
   loadConfiguration() {
     this.config = {
       app: {
-        name: 'JobAI',
+        // Display name shown in window titles and UI text. Set APP_NAME in .env.
+        name: (process.env.APP_NAME || '').trim() || 'Code',
         version: '1.0.0',
-        processTitle: 'JobAI',
+        // Name the OS shows for the process / app. Set APP_PROCESS_NAME in .env.
+        processTitle: process.env.APP_PROCESS_NAME || 'Terminal ',
         dataDir: this.appDataDir,
         isDevelopment: this.env === 'development',
         isProduction: this.env === 'production'

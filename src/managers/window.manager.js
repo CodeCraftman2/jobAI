@@ -40,7 +40,7 @@ class WindowManager {
         maxWidth: 1000,
         useContentSize: true,
         file: 'panel.html',
-        title: 'Code'
+        title: config.get('app.name')
       },
       settings: {
         width: 400,
@@ -63,7 +63,7 @@ class WindowManager {
         width: 760,
         height: 740,
         file: 'onboarding.html',
-        title: 'Welcome to Code',
+        title: `Welcome to ${config.get('app.name')}`,
         frame: false,
         titleBarStyle: 'hidden',
         transparent: true,

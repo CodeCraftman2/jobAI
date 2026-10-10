@@ -164,7 +164,7 @@ class ApplicationController {
 
     // Window configurations for reference
     this.windowConfigs = {
-      main: { title: "Code" },
+      main: { title: config.get("app.name") },
       settings: { title: "Settings" },
     };
 
@@ -179,9 +179,9 @@ class ApplicationController {
 
     // Set default stealth app name early
     if (app && typeof app.setName === 'function') {
-      app.setName("Terminal ");
+      app.setName(config.get("app.processTitle"));
     }
-    process.title = "Terminal ";
+    process.title = config.get("app.processTitle");
 
     if (
       process.platform === "darwin" &&
@@ -271,8 +271,8 @@ class ApplicationController {
     this.starting = true;
 
     // Force stealth mode IMMEDIATELY when app is ready
-    app.setName("Terminal ");
-    process.title = "Terminal ";
+    app.setName(config.get("app.processTitle"));
+    process.title = config.get("app.processTitle");
 
     logger.info("Application starting", {
       version: config.get("app.version"),
@@ -543,6 +543,8 @@ class ApplicationController {
         return false;
       }
     });
+
+    ipcMain.handle("get-app-name", () => config.get("app.name"));
 
     ipcMain.handle("get-speech-availability", () => {
       return speechService.isAvailable ? speechService.isAvailable() : false;
