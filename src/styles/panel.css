@@ -23,6 +23,9 @@
   --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Inter", sans-serif;
 }
 
+/* Always the normal desktop arrow, even over text, inputs, buttons and selections */
+*, *::before, *::after { cursor: default !important; }
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {

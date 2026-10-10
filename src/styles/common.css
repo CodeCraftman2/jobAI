@@ -3,6 +3,9 @@
 /* Font imports */
 @import url('../../node_modules/@fortawesome/fontawesome-free/css/all.min.css');
 
+/* Always the normal desktop arrow, even over text, inputs, buttons and selections */
+*, *::before, *::after { cursor: default !important; }
+
 /* Base styles */
 body {
     background: transparent !important;

@@ -23,6 +23,9 @@ const path = require('path');
 
 const PROBE_TIMEOUT_MS = 30000; // first `import whisper` (torch) is slow on a cold cache
 const INSTALL_TIMEOUT_MS = 300000; // pip downloads can be slow on cold cache
+// Python range with prebuilt wheels for whisper's dependencies (numba, torch).
+const MIN_PY = [3, 9];
+const MAX_PY = [3, 13];
 
 /**
  * Run a command, streaming stdout/stderr lines to `onProgress` as they
@@ -238,7 +241,10 @@ class WhisperInstaller {
     };
 
     log('→ Detecting Python on the system…');
-    const python = this._detectPython();
+    // Prefer a Python version that has prebuilt wheels for whisper's
+    // dependencies (numba, llvmlite, torch). A too-new default Python
+    // (e.g. 3.14) makes pip try to compile them and fail.
+    const python = (await this._findCompatiblePython()) || this._detectPython();
     if (!python) {
       const msg = this.platform === 'win32'
         ? 'Python 3.10+ not found. Install from python.org and make sure "Add Python to PATH" is checked.'
@@ -258,14 +264,25 @@ class WhisperInstaller {
     }
     log(`→ Python version: ${version}`);
     if (!this._isPythonVersionOk(version)) {
-      const msg = `Python ${version} is too old. openai-whisper requires Python 3.9 or newer. Please upgrade Python and retry.`;
+      const msg = `Python ${version} is not supported. openai-whisper needs Python ${MIN_PY.join('.')} to ${MAX_PY.join('.')}. Install Python 3.12 from python.org (tick "Add Python to PATH") and retry.`;
       log(`! ${msg}`);
       return { ok: false, command: null, message: msg, logs: msg };
     }
     log('✓ Python version OK');
 
     const vp = this.venvPaths;
-    const venvExists = fs.existsSync(vp.python);
+    let venvExists = fs.existsSync(vp.python);
+
+    // A venv left over from an earlier failed install may use an
+    // unsupported Python; recreate it rather than failing the same way.
+    if (venvExists) {
+      const venvVersion = await this._getPythonVersion(vp.python);
+      if (!venvVersion || !this._isPythonVersionOk(venvVersion)) {
+        log(`→ Existing venv uses Python ${venvVersion || '?'} (unsupported) — recreating…`);
+        try { fs.rmSync(this.venvPath, { recursive: true, force: true }); } catch (_) { /* best effort */ }
+        venvExists = fs.existsSync(vp.python);
+      }
+    }
 
     // Step 2: create venv if needed
     if (!venvExists) {
@@ -307,9 +324,21 @@ class WhisperInstaller {
       return { ok: false, command: null, message: msg, logs: msg };
     }
 
-    // Step 3: pip install into the venv
+    // Step 3a: update pip + build tooling first. Old bundled pip/setuptools
+    // are a common cause of "subprocess-exited-with-error" while building
+    // whisper's dependencies. Non-fatal: continue if the upgrade fails.
+    log('→ Updating pip, setuptools and wheel…');
+    const toolsResult = await this.runExec(
+      vp.python,
+      ['-m', 'pip', 'install', '--upgrade', '--disable-pip-version-check', 'pip', 'setuptools', 'wheel'],
+      { timeout: 120000, onProgress: log },
+    );
+    if (toolsResult.ok) log('✓ pip is up to date');
+    else log('! Could not update pip — continuing anyway');
+
+    // Step 3b: pip install into the venv
     log(`→ Installing openai-whisper into venv (this can take a few minutes)…`);
-    const pipResult = await this.runExec(vp.python, ['-m', 'pip', 'install', '--upgrade', 'openai-whisper'], {
+    const pipResult = await this.runExec(vp.python, ['-m', 'pip', 'install', '--upgrade', '--prefer-binary', '--disable-pip-version-check', 'openai-whisper'], {
       timeout: INSTALL_TIMEOUT_MS,
       onProgress: log,
     });
@@ -546,11 +575,29 @@ class WhisperInstaller {
   _isPythonVersionOk(version) {
     const m = (version || '').match(/^(\d+)\.(\d+)/);
     if (!m) return false;
-    const major = parseInt(m[1], 10);
-    const minor = parseInt(m[2], 10);
-    if (major > 3) return true;
-    if (major === 3 && minor >= 9) return true;
-    return false;
+    const v = [parseInt(m[1], 10), parseInt(m[2], 10)];
+    const cmp = (a, b) => (a[0] - b[0]) || (a[1] - b[1]);
+    return cmp(v, MIN_PY) >= 0 && cmp(v, MAX_PY) <= 0;
+  }
+
+  /**
+   * Look for an installed Python inside the supported range, newest
+   * well-supported first. Returns the interpreter's absolute path or null.
+   */
+  async _findCompatiblePython() {
+    const order = ['3.12', '3.11', '3.10', '3.13', '3.9'];
+    for (const v of order) {
+      const probes = this.platform === 'win32'
+        ? [['py', [`-${v}`]]]
+        : [[`python${v}`, []]];
+      for (const [cmd, pre] of probes) {
+        // eslint-disable-next-line no-await-in-loop
+        const r = await this.runExec(cmd, [...pre, '-c', 'import sys; print(sys.executable)'], { timeout: 10000 });
+        const exe = r.ok ? (r.stdout || '').trim().split(/\r?\n/).pop() : '';
+        if (exe && !/WindowsApps/i.test(exe) && fs.existsSync(exe)) return exe;
+      }
+    }
+    return null;
   }
 
   async downloadModel(modelName = 'small', { onProgress } = {}) {
