@@ -115,6 +115,7 @@ const captureService = require("./src/services/capture.service");
 const speechService = require("./src/services/speech.service");
 const llmService = require("./src/services/llm.service");
 const ocrService = require("./src/services/ocr.service");
+const syncServer = require("./src/services/sync.server");
 
 // Managers
 const windowManager = require("./src/managers/window.manager");
@@ -286,6 +287,9 @@ class ApplicationController {
       this.setupSecureKeys();
       this.setupPermissions();
       this.setupNetworkConfiguration();
+
+      // Local service the JobFill extension posts your applications and answers to.
+      syncServer.start({ logger }).then((server) => { this.syncServer = server; });
 
       // Small delay to ensure desktop/space detection is accurate
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -1624,6 +1628,7 @@ class ApplicationController {
 
   onWillQuit() {
     globalShortcut.unregisterAll();
+    if (this.syncServer) this.syncServer.close();
     speechService.shutdown();
     windowManager.destroyAllWindows();
 

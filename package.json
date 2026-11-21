@@ -7,6 +7,8 @@
     "start": "node scripts/start.js",
     "setup": "node scripts/setup-env.js",
     "setup-ocr": "node scripts/setup-ocr.js",
+    "kb": "node scripts/build-kb.js",
+    "kb:ai": "node scripts/build-kb.js --ai",
     "test": "node scripts/run-tests.js",
     "test:electron": "node scripts/test-electron.js",
     "dev": "node scripts/start.js --dev",

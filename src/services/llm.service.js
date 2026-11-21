@@ -6,6 +6,7 @@ const ocrService = require('./ocr.service');
 const { sanitizeRequest, redactSecrets, limitText } = require('../core/privacy');
 const modelHealth = require('../core/model-health');
 const visionProbe = require('../core/vision-probe');
+const knowledge = require('./knowledge.service');
 
 class LLMService {
   constructor() {
@@ -58,7 +59,8 @@ class LLMService {
       model,
       fallbackModels: [...rest, ...(config.get('llm.gateway.fallbackModels') || [])]
     };
-    if (['low', 'medium', 'high', 'xhigh', 'max'].includes(effort)) route.effort = effort;
+    // 'none' switches thinking off on servers that support it (Ollama's /v1), for fast local answers.
+    if (['none', 'low', 'medium', 'high', 'xhigh', 'max'].includes(effort)) route.effort = effort;
     return route;
   }
 
@@ -502,6 +504,7 @@ class LLMService {
     const route = routing === 'off' ? null : config.get(`llm.routing.${String(activeSkill || '').toLowerCase()}`);
     // Non-enumerable so it is never serialised into the API request body.
     Object.defineProperty(request, '_route', { value: route || null, enumerable: false, writable: true, configurable: true });
+    Object.defineProperty(request, '_skill', { value: String(activeSkill || '').toLowerCase(), enumerable: false, writable: true, configurable: true });
     return request;
   }
 
@@ -548,12 +551,35 @@ class LLMService {
    */
   prepareRequest(request) {
     if (!request || request._prepared) return request;
+    this.addCandidateContext(request);
     const stats = sanitizeRequest(request);
     Object.defineProperty(request, '_prepared', { value: true, enumerable: false, writable: true, configurable: true });
     if (stats.redactions || stats.truncatedParts || stats.droppedMessages || stats.droppedImages) {
       logger.info('Request trimmed before sending', stats);
     }
     return request;
+  }
+
+  /**
+   * Interview mode: add the facts about the candidate (projects, earlier answers,
+   * applications from the shared knowledge folder) that relate to this question
+   * to the system prompt. Runs before sanitizing, so the same caps and redaction apply.
+   */
+  addCandidateContext(request) {
+    if (request._skill !== 'interview') return;
+    try {
+      const userTurns = (request.contents || []).filter((c) => c && c.role === 'user');
+      const last = userTurns[userTurns.length - 1];
+      const question = ((last && last.parts) || []).map((p) => (p && typeof p.text === 'string' ? p.text : '')).join('\n').trim();
+      if (!question) return;
+      const section = knowledge.contextFor(question);
+      if (!section) return;
+      const parts = (request.systemInstruction && request.systemInstruction.parts) || [];
+      request.systemInstruction = { parts: [...parts, { text: section }] };
+      logger.debug('Added candidate knowledge to the prompt', { chars: section.length });
+    } catch (error) {
+      logger.warn('Candidate knowledge skipped', { error: error.message });
+    }
   }
 
   /** At most `llm.gateway.maxConcurrent` requests to the gateway at once; the rest wait their turn. */
@@ -1635,7 +1661,7 @@ Remember: Be intelligent about filtering - only provide detailed responses when 
     const maxTokens = route?.maxTokens || geminiRequest.generationConfig?.maxOutputTokens || config.get('llm.gateway.maxTokens');
     const payload = { model, max_tokens: maxTokens, messages, stream: !!stream };
     if (system) payload.system = system;
-    if (route?.effort) payload.output_config = { effort: route.effort };
+    if (route?.effort && route.effort !== 'none') payload.output_config = { effort: route.effort };
     return payload;
   }
 
