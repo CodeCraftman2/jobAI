@@ -37,13 +37,18 @@ class FirstRunManager {
     return !this._hasLlmKey(content);
   }
 
-  /** True when the required Gemini key is real. */
+  /**
+   * True when the AI that answers is set up: a real Gemini key, or, when the
+   * custom provider is the one chosen (LLM_PROVIDER=gateway, e.g. a local
+   * Ollama), its base URL and key.
+   */
   _hasLlmKey(env) {
     const real = (v) => {
       const t = (v || '').trim();
       return !!t && !/^your[-_]/i.test(t);
     };
-    return real(env.GEMINI_API_KEY);
+    const gatewayChosen = (env.LLM_PROVIDER || '').trim().toLowerCase() === 'gateway';
+    return real(env.GEMINI_API_KEY) || (gatewayChosen && real(env.GATEWAY_BASE_URL) && real(env.GATEWAY_API_KEY));
   }
 
   /**

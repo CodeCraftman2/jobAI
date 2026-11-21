@@ -196,3 +196,13 @@ test('knowledge: a JobFill profile becomes facts, without contact details or mat
     server.close();
   }
 });
+
+test('knowledge: question matches keep their place when the profile is long; the profile is what gets cut', () => {
+  const dir = tmpDir();
+  fs.writeFileSync(path.join(dir, 'profile.md'), '## Candidate snapshot\n' + '- a long line about the candidate\n'.repeat(200));
+  knowledge.addApplications([{ title: 'Lead Generation Executive', company: 'Zeta Leads', link: 'https://z.dev/1', status: 'Applied' }], dir);
+  const s = knowledge.contextFor('Why did you apply to Zeta Leads?', { dir, maxChars: 1500 });
+  assert.ok(s.length <= 1500, `got ${s.length}`);
+  assert.match(s, /Lead Generation Executive at Zeta Leads \(Applied\)/);
+  assert.match(s, /a long line about the candidate/);
+});

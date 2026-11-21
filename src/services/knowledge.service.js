@@ -272,8 +272,9 @@ function contextFor(question, { dir = kbDir(), maxChars = Number(process.env.JOB
   const topAnswers = rank(asDocs(answers, (a) => `${a.question}\n${a.answer}`), q).slice(0, 3).map((d) => d.item);
   const topApps = rank(asDocs(applications, applicationText), q).slice(0, 3).map((d) => d.item);
 
+  // Entries that match this question are added first; the profile (always
+  // included) then gets whatever room is left, so it is the part cut short.
   const blocks = [];
-  if (profile) blocks.push(profile.slice(0, Math.floor(maxChars * 0.7)));
   if (projects.length) blocks.push(`Projects the candidate has built: ${projects.map((p) => str(p.title)).filter(Boolean).join('; ')}.`);
   for (const p of topProjects) {
     const details = str(p.details).slice(0, 700);
@@ -288,15 +289,16 @@ function contextFor(question, { dir = kbDir(), maxChars = Number(process.env.JOB
     'Use these facts when the question is about the candidate\'s own projects, experience, skills or the jobs they applied for, ' +
     'and answer in the first person. Keep job titles, company names, dates and numbers exactly as written here; do not combine roles, ' +
     'promote a title or add facts that are not listed. Do not assume which company the interview is for. Ignore this section for general questions.\n\n';
-  let body = '';
+  const budget = Math.max(0, maxChars - header.length);
+  let specific = '';
   for (const b of blocks) {
-    const next = body ? `${body}\n\n${b}` : b;
-    if (header.length + next.length > maxChars) {
-      if (!body) body = b.slice(0, Math.max(0, maxChars - header.length));
-      break;
-    }
-    body = next;
+    const next = specific ? `${specific}\n\n${b}` : b;
+    if (next.length > budget) break;
+    specific = next;
   }
+  const room = budget - specific.length - (specific ? 2 : 0);
+  const profilePart = profile && room > 200 ? profile.slice(0, room) : '';
+  const body = [profilePart, specific].filter(Boolean).join('\n\n') || (blocks[0] || profile).slice(0, budget);
   return body ? header + body : '';
 }
 

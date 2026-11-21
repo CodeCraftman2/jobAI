@@ -103,6 +103,11 @@ test('setup is needed until a Gemini key exists, in .env or the keychain', () =>
   fs.writeFileSync(envPath, 'GEMINI_API_KEY=\nGATEWAY_API_KEY=sk-or-realkey123456\n');
   assert.equal(new FirstRunManager({ envPath, sentinelPath, logger: {} }).needsOnboarding(), true, 'an other-AI key alone is not enough');
 
+  fs.writeFileSync(envPath, 'GEMINI_API_KEY=\nLLM_PROVIDER=gateway\nGATEWAY_BASE_URL=http://localhost:11434/v1\nGATEWAY_API_KEY=ollama\n');
+  assert.equal(new FirstRunManager({ envPath, sentinelPath, logger: {} }).needsOnboarding(), false, 'a chosen custom provider (e.g. local Ollama) is enough');
+  fs.writeFileSync(envPath, 'GEMINI_API_KEY=\nLLM_PROVIDER=gateway\nGATEWAY_API_KEY=ollama\n');
+  assert.equal(new FirstRunManager({ envPath, sentinelPath, logger: {} }).needsOnboarding(), true, 'but it needs a base URL');
+
   fs.writeFileSync(envPath, 'GEMINI_API_KEY=AIzaSyRealKey\n');
   assert.equal(new FirstRunManager({ envPath, sentinelPath, logger: {} }).needsOnboarding(), false);
 
