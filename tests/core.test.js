@@ -120,3 +120,12 @@ test('setup is needed until a Gemini key exists, in .env or the keychain', () =>
   assert.equal(status.needsOnboarding(), false, 'a key in the keychain counts');
   assert.equal(status.getStatus().geminiConfigured, true);
 });
+
+// ── speech polyfills must not replace Node's own URL / Blob ─────────────
+test('loading the speech service keeps the real URL, so http:// AI servers still work', () => {
+  const RealURL = URL;
+  require('../src/services/speech.service');
+  assert.equal(globalThis.URL, RealURL);
+  assert.equal(new URL('http://localhost:11434/v1').protocol, 'http:');
+  assert.equal(typeof new Blob(['x']).size, 'number');
+});

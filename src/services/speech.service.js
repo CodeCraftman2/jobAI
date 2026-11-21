@@ -351,9 +351,12 @@ if (typeof window === 'undefined') {
   global.navigator = global.window.navigator;
   global.AudioContext = global.window.AudioContext;
   global.webkitAudioContext = global.window.webkitAudioContext;
-  global.URL = global.window.URL;
-  global.Blob = global.window.Blob;
-  global.File = global.window.File;
+  // Node already has real URL, Blob and File. Replacing them broke the rest of
+  // the app: the stub URL reports every address as https:, so a plain-http AI
+  // server (a local Ollama) failed with "Protocol http: not supported".
+  if (typeof global.URL === 'undefined') global.URL = global.window.URL;
+  if (typeof global.Blob === 'undefined') global.Blob = global.window.Blob;
+  if (typeof global.File === 'undefined') global.File = global.window.File;
 
   if (!global.performance) {
     global.performance = {
