@@ -19,7 +19,7 @@ const path = require('path');
 
 const FILES = { projects: 'projects.json', applications: 'applications.json', answers: 'answers.json' };
 const LIMITS = { applications: 5000, answers: 2000 };
-const DEFAULT_MAX_CHARS = 3200;
+const DEFAULT_MAX_CHARS = 4500;
 const STOP = new Set(('the and for are was were with that this have has had you your yours our ours they them their ' +
   'what which who whom when where why how can could would should will shall may might must about into from over ' +
   'under than then there here been being does did doing done tell give explain describe talk walk through me my mine ' +
@@ -144,8 +144,79 @@ function profileText(dir = kbDir()) {
     const kept = line.split(/\s+[·|]\s+/).filter((part) => !CONTACT.test(part));
     return kept.length && /\w/.test(kept.join('').replace(/^[\s*-]*[\w ]+:\s*$/, '')) ? kept.join(' · ') : null;
   };
-  return text.split('\n').map(withoutContact).filter((line) => line !== null).join('\n')
+  const notes = text.split('\n').map(withoutContact).filter((line) => line !== null).join('\n')
     .replace(/^##\s+/gm, '#### ').replace(/\*\*/g, '').replace(/\n{3,}/g, '\n\n').trim();
+  return [jobfillProfileText(readProfile(dir)), notes].filter(Boolean).join('\n\n');
+}
+
+// The JobFill extension's profile (profile.json, sent by the extension or copied in):
+// work history with dates, salary and notice period, written answers. Contact
+// details and JobFill's own field-matching rules are never stored.
+
+const PROFILE_DROP = { personal: ['email', 'phone', 'linkedin', 'github', 'portfolio', 'website', 'twitter'] };
+
+function readProfile(dir = kbDir()) {
+  try {
+    const p = JSON.parse(fs.readFileSync(path.join(dir, 'profile.json'), 'utf8'));
+    return p && typeof p === 'object' && !Array.isArray(p) ? p : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/** Keep only what interview answers can use; returns the stored object. */
+function setProfile(raw, dir = kbDir()) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw Object.assign(new Error('profile must be an object'), { status: 400 });
+  const clean = {};
+  for (const [section, value] of Object.entries(raw)) {
+    if (section === 'rules') continue;
+    if (Array.isArray(value)) {
+      clean[section] = value.filter((x) => x && typeof x === 'object').slice(0, 30)
+        .map((x) => Object.fromEntries(Object.entries(x).filter(([, v]) => typeof v !== 'object').map(([k, v]) => [k, str(v).slice(0, 500)])));
+    } else if (value && typeof value === 'object') {
+      const drop = PROFILE_DROP[section] || [];
+      clean[section] = Object.fromEntries(Object.entries(value)
+        .filter(([k, v]) => !drop.includes(k) && typeof v !== 'object' && str(v) && !CONTACT.test(str(v)))
+        .map(([k, v]) => [k, str(v).slice(0, 1500)]));
+    }
+  }
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, 'profile.json');
+  fs.writeFileSync(`${file}.${process.pid}.tmp`, JSON.stringify(clean, null, 2));
+  fs.renameSync(`${file}.${process.pid}.tmp`, file);
+  return clean;
+}
+
+const words = (key) => key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').replace(/\bctc\b/i, 'CTC').replace(/^./, (c) => c.toUpperCase());
+const rupees = (v) => (/^\d{5,}$/.test(str(v)) ? `₹${Number(v).toLocaleString('en-IN')} a year (₹${Math.round(Number(v) / 12).toLocaleString('en-IN')}/month)` : str(v));
+
+function jobfillProfileText(p) {
+  if (!p) return '';
+  const lines = ['#### Candidate profile'];
+  const per = p.personal || {};
+  const place = [per.city, per.state, per.country].map(str).filter(Boolean).join(', ');
+  const name = str(per.fullName) || [per.firstName, per.lastName].map(str).filter(Boolean).join(' ');
+  if (name || place) lines.push(`- Name: ${[name, place].filter(Boolean).join(' · ')}`);
+  const ed = p.education || {};
+  if (ed.degree || ed.college) {
+    const years = [ed.startYear, ed.graduationYear].map(str).filter(Boolean).join('–');
+    lines.push(`- Education: ${[ed.degree, ed.branch].map(str).filter(Boolean).join(' ')}${ed.college ? `, ${str(ed.college)}` : ''}${years ? ` (${years})` : ''}`);
+  }
+  const jobs = Array.isArray(p.experience) ? p.experience : [];
+  if (jobs.length) {
+    lines.push('- Work history (exact titles):');
+    for (const j of jobs) {
+      const when = [j.start, j.end].map(str).filter(Boolean).join(' – ');
+      lines.push(`  - ${str(j.title)}${j.company ? ` at ${str(j.company)}` : ''}${when ? `, ${when}` : ''}${j.type ? ` (${str(j.type)})` : ''}`);
+    }
+  }
+  for (const [k, v] of Object.entries(p.job || {})) {
+    if (str(v)) lines.push(`- ${words(k)}: ${/ctc|salary|pay/i.test(k) ? rupees(v) : str(v)}`);
+  }
+  for (const [k, v] of Object.entries(p.answers || {})) {
+    if (str(v)) lines.push(`- Their own answer to "${words(k)}": ${str(v)}`);
+  }
+  return lines.length > 1 ? lines.join('\n') : '';
 }
 
 // ---- retrieval -------------------------------------------------------------------
@@ -202,7 +273,7 @@ function contextFor(question, { dir = kbDir(), maxChars = Number(process.env.JOB
   const topApps = rank(asDocs(applications, applicationText), q).slice(0, 3).map((d) => d.item);
 
   const blocks = [];
-  if (profile) blocks.push(profile.slice(0, Math.floor(maxChars * 0.6)));
+  if (profile) blocks.push(profile.slice(0, Math.floor(maxChars * 0.7)));
   if (projects.length) blocks.push(`Projects the candidate has built: ${projects.map((p) => str(p.title)).filter(Boolean).join('; ')}.`);
   for (const p of topProjects) {
     const details = str(p.details).slice(0, 700);
@@ -229,4 +300,4 @@ function contextFor(question, { dir = kbDir(), maxChars = Number(process.env.JOB
   return body ? header + body : '';
 }
 
-module.exports = { kbDir, enabled, contextFor, profileText, addApplications, addAnswers, readList, writeList, tokens, FILES };
+module.exports = { kbDir, enabled, contextFor, profileText, setProfile, readProfile, addApplications, addAnswers, readList, writeList, tokens, FILES };

@@ -164,3 +164,35 @@ test('knowledge: the profile comes from CLAUDE.md sections, without contact deta
   fs.writeFileSync(path.join(dir, 'profile.md'), 'I am Asha, a sales fresher.');
   assert.match(knowledge.contextFor('anything', { dir }), /I am Asha, a sales fresher\./);
 });
+
+test('knowledge: a JobFill profile becomes facts, without contact details or matching rules', async () => {
+  const dir = tmpDir();
+  knowledge.setProfile({
+    personal: { fullName: 'Asha Rao', city: 'Delhi', email: 'asha@example.com', phone: '+91 98765 43210', linkedin: 'https://linkedin.com/in/asha', website: 'asha.dev' },
+    education: { degree: 'B.Tech', branch: 'CSE', college: 'ITER', startYear: '2022', graduationYear: '2026' },
+    job: { expectedCTC: '300000', noticePeriod: 'Immediate', note: 'mail me at asha@example.com' },
+    experience: [{ title: 'Android Developer (Intern)', company: 'Mobogage', start: 'May 2024', end: 'Jul 2024', type: 'internship' }],
+    answers: { whyThisRole: 'I like research.' },
+    rules: [{ match: ['x'], value: 'y' }],
+  }, dir);
+  const stored = fs.readFileSync(path.join(dir, 'profile.json'), 'utf8');
+  assert.doesNotMatch(stored, /asha@example|98765|linkedin|rules|"website"/);
+  const s = knowledge.contextFor('When can you join?', { dir });
+  assert.match(s, /- Name: Asha Rao · Delhi/);
+  assert.match(s, /Android Developer \(Intern\) at Mobogage, May 2024 – Jul 2024 \(internship\)/);
+  assert.match(s, /Expected CTC: ₹3,00,000 a year \(₹25,000\/month\)/);
+  assert.match(s, /Their own answer to "Why This Role": I like research\./);
+  assert.throws(() => knowledge.setProfile([1], dir), /must be an object/);
+
+  const server = await syncServer.start({ port: 0, dir });
+  try {
+    const res = await fetch(`http://127.0.0.1:${server.address().port}/v1/profile`, {
+      method: 'POST', headers: { Origin: 'chrome-extension://abcdefghijklmnopabcdefghijklmnop', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile: { personal: { fullName: 'Asha B' } } }),
+    });
+    assert.equal(res.status, 200);
+    assert.equal(knowledge.readProfile(dir).personal.fullName, 'Asha B');
+  } finally {
+    server.close();
+  }
+});

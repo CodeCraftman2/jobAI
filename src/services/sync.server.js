@@ -8,6 +8,7 @@ const knowledge = require('./knowledge.service');
  *   GET  /v1/health        -> { ok, kbDir }
  *   POST /v1/applications  { items: [{ title, company, link, status, appliedOn, ... }] }
  *   POST /v1/answers       { items: [{ question, answer, saved }] }
+ *   POST /v1/profile       { profile }   (JobFill's profile; contact details are dropped)
  *
  * Only the loopback interface is bound, and a request that carries an Origin
  * must come from a browser extension, so a web page cannot write to it.
@@ -64,6 +65,12 @@ function handler({ dir, logger } = {}) {
     const route = `${req.method} ${(req.url || '').split('?')[0]}`;
     try {
       if (route === 'GET /v1/health') return send(res, 200, { ok: true, kbDir: dir || knowledge.kbDir() }, origin);
+      if (route === 'POST /v1/profile') {
+        const body = await readJson(req);
+        knowledge.setProfile(body.profile, dir);
+        if (logger) logger.info('Knowledge sync', { route });
+        return send(res, 200, { ok: true }, origin);
+      }
       if (route === 'POST /v1/applications' || route === 'POST /v1/answers') {
         const body = await readJson(req);
         const items = Array.isArray(body.items) ? body.items : [];
