@@ -155,6 +155,8 @@ class ApplicationController {
       // and that persistEnvUpdates() writes to.
       envPath: ENV_PATH,
       sentinelPath: path.join(app.getPath("userData"), ".jobai-firstrun-completed"),
+      // Whisper's venv and models: setup is offered again when they are gone.
+      dataDir: app.getPath("userData"),
       // API keys live in the OS keychain, so setup status also looks there.
       secrets: secureStore,
     });
@@ -1745,6 +1747,11 @@ class ApplicationController {
       }
       if (settings.whisperModel !== undefined) {
         envUpdates.WHISPER_MODEL = settings.whisperModel;
+      }
+      // Onboarding's model step: "later" means the first transcription
+      // downloads it, so a missing model file should not reopen setup.
+      if (settings.whisperModelDownload === "now" || settings.whisperModelDownload === "later") {
+        envUpdates.WHISPER_MODEL_DOWNLOAD = settings.whisperModelDownload;
       }
       if (settings.whisperLanguage !== undefined) {
         envUpdates.WHISPER_LANGUAGE = settings.whisperLanguage;

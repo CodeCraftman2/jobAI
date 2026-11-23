@@ -23,18 +23,83 @@ class FirstRunManager {
     this.logger = options.logger || console;
     // Optional keychain: keys saved there do not appear in .env.
     this.secrets = options.secrets || null;
+    // Where the onboarding wizard installs Whisper (.venv-whisper) and its
+    // models (.whisper-models): userData in packaged builds.
+    this.dataDir = options.dataDir || path.dirname(this.envPath);
+    this.platform = options.platform || process.platform;
   }
 
   /**
    * Returns true if this looks like a fresh install — no .env, no
-   * sentinel file, or .env exists but has no Gemini key (required: it
-   * answers interview questions and is the fallback for every other AI).
+   * sentinel file, .env exists but has no Gemini key (required: it
+   * answers interview questions and is the fallback for every other AI),
+   * or the chosen speech engine is not actually present on this PC. The
+   * sentinel and .env survive an uninstall, so they alone do not prove
+   * that Whisper and its model are still here.
    */
   needsOnboarding() {
     if (!fs.existsSync(this.sentinelPath)) return true;
     if (!fs.existsSync(this.envPath)) return true;
     const content = this._readEnv();
-    return !this._hasLlmKey(content);
+    return !this._hasLlmKey(content) || !this._speechReady(content);
+  }
+
+  /**
+   * True when the chosen speech engine can run: Azure has a key and region;
+   * local Whisper has a runnable command and, unless the user chose to
+   * download the model on first use, the model weights on disk.
+   * File checks only, so startup stays fast.
+   */
+  _speechReady(env) {
+    const provider = (env.SPEECH_PROVIDER || 'whisper').trim().toLowerCase();
+    if (provider === 'azure') {
+      return !!(env.AZURE_SPEECH_KEY || '').trim() && !!(env.AZURE_SPEECH_REGION || '').trim();
+    }
+    if (provider !== 'whisper') return true;
+    return this._whisperFound(env) && this._whisperModelReady(env);
+  }
+
+  _whisperFound(env) {
+    const win = this.platform === 'win32';
+    const venvExe = path.join(this.dataDir, '.venv-whisper', win ? 'Scripts' : 'bin', win ? 'whisper.exe' : 'whisper');
+    if (fs.existsSync(venvExe)) return true;
+
+    const command = (env.WHISPER_COMMAND || '').trim();
+    if (!command) return false;
+    // First token, quotes respected: "C:\Program Files\...\python.exe" -m whisper
+    const m = command.match(/^"([^"]+)"|^(\S+)/);
+    const first = m ? (m[1] || m[2]) : '';
+    if (!first) return false;
+    if (path.isAbsolute(first)) return fs.existsSync(first);
+    return this._onPath(first);
+  }
+
+  /** Whether a bare command name (whisper, py, python) resolves on PATH. */
+  _onPath(name) {
+    const win = this.platform === 'win32';
+    const exts = win
+      ? (path.extname(name) ? [''] : (process.env.PATHEXT || '.EXE;.CMD;.BAT;.COM').split(';').filter(Boolean))
+      : [''];
+    const dirs = (process.env.PATH || process.env.Path || '').split(path.delimiter).filter(Boolean);
+    for (const dir of dirs) {
+      for (const ext of exts) {
+        try {
+          if (fs.statSync(path.join(dir, name + ext)).isFile()) return true;
+        } catch (_) { /* not here */ }
+      }
+    }
+    return false;
+  }
+
+  _whisperModelReady(env) {
+    if ((env.WHISPER_MODEL_DOWNLOAD || '').trim().toLowerCase() === 'later') return true;
+    const model = (env.WHISPER_MODEL || 'small').trim() || 'small';
+    const configuredDir = (env.WHISPER_MODEL_DIR || '').trim();
+    const dirs = [
+      configuredDir && path.isAbsolute(configuredDir) ? configuredDir : null,
+      path.join(this.dataDir, '.whisper-models'),
+    ].filter(Boolean);
+    return dirs.some((dir) => fs.existsSync(path.join(dir, `${model}.pt`)));
   }
 
   /**
@@ -103,6 +168,7 @@ class FirstRunManager {
       anthropicConfigured: [env.GATEWAY_API_KEY, env.ANTHROPIC_API_KEY].some((k) => !!(k || '').trim() && !/^your[-_]/i.test(k.trim())),
       azureConfigured: !!(env.AZURE_SPEECH_KEY || '').trim() && !!(env.AZURE_SPEECH_REGION || '').trim(),
       whisperConfigured: !!(env.WHISPER_COMMAND || '').trim(),
+      speechReady: this._speechReady(env),
       needsOnboarding: this.needsOnboarding()
     };
   }

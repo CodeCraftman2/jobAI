@@ -166,6 +166,9 @@
       "deleteAppDataOnUninstall": false,
       "artifactName": "Code-Setup.${ext}"
     },
+    "portable": {
+      "artifactName": "Code-Portable-${version}.${ext}"
+    },
     "dmg": {
       "title": "Code Interview Assistant",
       "backgroundColor": "#000000",
