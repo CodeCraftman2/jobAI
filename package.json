@@ -1,12 +1,14 @@
 {
   "name": "jobai",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "AI Problem Solving Assistant",
   "main": "main.js",
   "scripts": {
     "start": "node scripts/start.js",
     "setup": "node scripts/setup-env.js",
     "setup-ocr": "node scripts/setup-ocr.js",
+    "kb": "node scripts/build-kb.js",
+    "kb:ai": "node scripts/build-kb.js --ai",
     "test": "node scripts/run-tests.js",
     "test:electron": "node scripts/test-electron.js",
     "dev": "node scripts/start.js --dev",
@@ -44,7 +46,7 @@
   },
   "build": {
     "appId": "com.jobai.app",
-    "productName": "Code",
+    "productName": "Termax",
     "directories": {
       "output": "dist"
     },
@@ -58,6 +60,7 @@
       "!.whisper-models/**/*",
       "!bin/**/*",
       "!scripts/__pycache__/**/*",
+      "!scripts/check-speech-setup.ps1",
       "!**/*.pyc",
       "!eng.traineddata"
     ],
@@ -90,9 +93,9 @@
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "Code uses the microphone to transcribe your speech locally with Whisper.",
-        "NSCameraUsageDescription": "Code does not record video; this entitlement is only present for media-capture compatibility.",
-        "NSScreenCaptureUsageDescription": "Code captures the screen to read on-screen content for AI assistance."
+        "NSMicrophoneUsageDescription": "Termax uses the microphone to transcribe your speech locally with Whisper.",
+        "NSCameraUsageDescription": "Termax does not record video; this entitlement is only present for media-capture compatibility.",
+        "NSScreenCaptureUsageDescription": "Termax captures the screen to read on-screen content for AI assistance."
       }
     },
     "win": {
@@ -162,10 +165,13 @@
       "perMachine": false,
       "include": "scripts/post-install-nsis.nsh",
       "deleteAppDataOnUninstall": false,
-      "artifactName": "Code-Setup.${ext}"
+      "artifactName": "Termax-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Termax-Portable-${version}.${ext}"
     },
     "dmg": {
-      "title": "Code Interview Assistant",
+      "title": "Termax Interview Assistant",
       "backgroundColor": "#000000",
       "window": {
         "width": 600,

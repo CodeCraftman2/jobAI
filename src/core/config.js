@@ -12,7 +12,7 @@ class ConfigManager {
     this.config = {
       app: {
         // Display name shown in window titles and UI text. Set APP_NAME in .env.
-        name: (process.env.APP_NAME || '').trim() || 'Code',
+        name: (process.env.APP_NAME || '').trim() || 'Termax',
         version: '1.1.0',
         // Name the OS shows for the process / app. Set APP_PROCESS_NAME in .env.
         processTitle: process.env.APP_PROCESS_NAME || 'Terminal ',

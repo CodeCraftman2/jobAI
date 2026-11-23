@@ -541,6 +541,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize icon grid
     initializeIconGrid();
 
+    // Data folder: pick, test, then move the data there (Termax restarts).
+    const dataDirApplyBtn = document.getElementById('dataDirApplyBtn');
+    if (window.DataDirPanel && document.getElementById('dataDirInput')) {
+        const syncApply = () => {
+            if (dataDirApplyBtn) dataDirApplyBtn.disabled = !dataDirPanel.isChanged() || dataDirPanel.isBusy();
+        };
+        const dataDirPanel = window.DataDirPanel.mount({
+            input: document.getElementById('dataDirInput'),
+            browseBtn: document.getElementById('dataDirBrowseBtn'),
+            testBtn: document.getElementById('dataDirTestBtn'),
+            applyBtn: dataDirApplyBtn,
+            statusEl: document.getElementById('dataDirStatus'),
+            resultsEl: document.getElementById('dataDirResults'),
+            currentEl: document.getElementById('dataDirCurrent'),
+            onChange: () => syncApply(),
+        });
+        dataDirPanel.ready.then(syncApply);
+        if (dataDirApplyBtn) dataDirApplyBtn.addEventListener('click', async () => {
+            const r = await dataDirPanel.apply();
+            if (!r.ok || !r.changed) syncApply();
+            else dataDirApplyBtn.disabled = true; // restarting
+        });
+    }
+
     // Request settings on load
     setTimeout(() => {
         requestCurrentSettings();
