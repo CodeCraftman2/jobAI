@@ -284,7 +284,7 @@
         }
     </style>
     <style>
-        /* Code panel look: same palette, shapes and type as panel.html */
+        /* Termax panel look: same palette, shapes and type as panel.html */
         :root {
             --bg: #161618; --bg-2: #1c1c1f; --bg-3: #232327;
             --line: rgba(255, 255, 255, 0.09); --line-strong: rgba(255, 255, 255, 0.18);
@@ -654,13 +654,38 @@
 
             <div class="settings-section">
                 <div class="settings-section-title">
+                    <i class="fas fa-folder-open"></i>
+                    Data Folder
+                </div>
+                <div class="settings-section-content">
+                    <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:8px;">
+                        <div>
+                            <div class="settings-item-label">Where Termax keeps its data</div>
+                            <div class="settings-item-description">Settings, saved API keys, the local Whisper install, its models and OCR data. Whisper can take a few GB, so a roomy drive helps. In use now: <span class="dd-current" id="dataDirCurrent"></span></div>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="text" class="input-field" id="dataDirInput" spellcheck="false" style="flex:1;max-width:none;font-family:ui-monospace,'Cascadia Mono',Consolas,monospace;font-size:12px;" placeholder="X:\integration\jobai">
+                            <button type="button" class="input-field gw-btn" id="dataDirBrowseBtn">Browse…</button>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <button type="button" class="input-field gw-btn" id="dataDirTestBtn" title="Writes 1 MB, reads it back and compares it, and checks free space. Leaves nothing behind.">Test folder</button>
+                            <button type="button" class="input-field gw-btn" id="dataDirApplyBtn" disabled title="Copies your data there (the old folder is kept) and restarts Termax">Move data here and restart</button>
+                            <span id="dataDirStatus" class="dd-status"></span>
+                        </div>
+                        <div id="dataDirResults" class="dd-results"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">
                     <i class="fas fa-keyboard"></i>
                     Keyboard Shortcuts
                 </div>
                 <div class="settings-section-content shortcuts">
                     <div class="sc-group">Works anywhere</div>
                     <div class="sc-row"><span class="sc-label">Capture the screen and analyze it</span><span class="sc-keys"><kbd>Alt</kbd><kbd>S</kbd></span></div>
-                    <div class="sc-row"><span class="sc-label" data-app-name="Show or hide {name}">Show or hide Code</span><span class="sc-keys"><kbd>Alt</kbd><kbd>L</kbd></span></div>
+                    <div class="sc-row"><span class="sc-label" data-app-name="Show or hide {name}">Show or hide Termax</span><span class="sc-keys"><kbd>Alt</kbd><kbd>L</kbd></span></div>
                     <div class="sc-row"><span class="sc-label">Focus the input box</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>I</kbd></span></div>
                     <div class="sc-row"><span class="sc-label">Start or stop auto mode (audio + screen)</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>M</kbd></span></div>
                     <div class="sc-row"><span class="sc-label">Stop auto mode (audio + screen)</span><span class="sc-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>X</kbd></span></div>
@@ -682,6 +707,7 @@
 
     <script src="./src/ui/curl-parser.js"></script>
     <script src="./src/ui/app-name.js"></script>
+    <script src="./src/ui/data-dir-panel.js"></script>
     <script src="./src/ui/settings-window.js"></script>
 </body>
 </html>

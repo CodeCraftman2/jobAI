@@ -106,6 +106,15 @@ test('sync server: stores posts from an extension, refuses web pages', async () 
     let res = await fetch(`${base}/v1/health`, { headers: { Origin: ext } });
     assert.equal(res.status, 200);
     assert.equal(res.headers.get('access-control-allow-origin'), ext);
+    assert.equal((await res.json()).hasProfile, false, 'a new folder has no profile yet');
+
+    res = await fetch(`${base}/v1/profile`, {
+      method: 'POST', headers: { Origin: ext, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile: { personal: { firstName: 'Asha', email: 'a@x.dev' } } }),
+    });
+    assert.equal(res.status, 200);
+    res = await fetch(`${base}/v1/health`, { headers: { Origin: ext } });
+    assert.equal((await res.json()).hasProfile, true, 'and has one once JobFill sent it');
 
     res = await fetch(`${base}/v1/applications`, { method: 'OPTIONS', headers: { Origin: ext } });
     assert.equal(res.status, 204);

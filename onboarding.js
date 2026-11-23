@@ -18,6 +18,7 @@
   // ── DOM refs ──────────────────────────────────────────────────────
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
   // Quote the executable portion of a command string if it contains spaces.
   // This keeps Windows user profile paths (e.g. C:\Users\CANDAN SINGH\...) intact.
@@ -140,7 +141,7 @@
 
   // Order depends on choices — e.g. whisper path inserts the install screen.
   function computeScreenOrder() {
-    const out = ['welcome', 'apikey', 'preferences', 'ocr', 'speech'];
+    const out = ['welcome', 'storage', 'apikey', 'preferences', 'ocr', 'speech'];
     if (state.speechProvider === 'whisper') out.push('whisper');
     if (state.speechProvider === 'whisper') out.push('model-download');
     out.push('finish');
@@ -158,6 +159,8 @@
     switch (name) {
       case 'welcome':
         return true;
+      case 'storage':
+        return !dataDirPanel || !dataDirPanel.isBusy();
       case 'apikey':
         // A key already in .env is enough — don't force a re-entry.
         return llmKeyReady();
@@ -683,8 +686,8 @@
       cls: state.ocrInstalled ? 'ok' : 'skip',
     });
     rows.push({
-      label: '<i class="fas fa-file-lines"></i> Config saved to',
-      value: '.env',
+      label: '<i class="fas fa-folder"></i> Data folder',
+      value: escapeHtml((dataDirPanel && dataDirPanel.info() && dataDirPanel.info().dir) || 'default'),
       cls: 'ok',
     });
     $('#summaryList').innerHTML = rows
@@ -729,6 +732,15 @@
       // Lightly nudge the user
       if (name === 'apikey') setKeyStatus('error', 'Enter a Gemini API key');
       return;
+    }
+
+    // Data folder: a new folder means copy + restart, and setup resumes
+    // there on the next screen. The same folder just moves on.
+    if (name === 'storage' && dataDirPanel && dataDirPanel.isChanged()) {
+      nextBtn.disabled = true;
+      const r = await dataDirPanel.apply({ resume: 'apikey' });
+      if (!r.ok) nextBtn.disabled = false;
+      return; // on success the app restarts
     }
 
     // Persist settings on speech selection (Azure path), since we
@@ -882,6 +894,23 @@
     if (!state.whisperDetected) addManualInstallButton();
   };
 
+  // ── Wire up: Data folder screen ───────────────────────────────────
+  const dataDirMoveHint = $('#dataDirMoveHint');
+  const dataDirPanel = window.DataDirPanel && $('#dataDirInput')
+    ? window.DataDirPanel.mount({
+      input: $('#dataDirInput'),
+      browseBtn: $('#dataDirBrowseBtn'),
+      testBtn: $('#dataDirTestBtn'),
+      statusEl: $('#dataDirStatus'),
+      resultsEl: $('#dataDirResults'),
+      currentEl: $('#dataDirCurrent'),
+      onChange: () => {
+        if (dataDirMoveHint) dataDirMoveHint.style.display = dataDirPanel && dataDirPanel.isChanged() ? '' : 'none';
+        if (currentScreenName() === 'storage') nextBtn.disabled = !!(dataDirPanel && dataDirPanel.isBusy());
+      },
+    })
+    : null;
+
   // ── Boot ──────────────────────────────────────────────────────────
   showScreen('welcome');
 
@@ -890,6 +919,11 @@
   if (window.electronAPI && window.electronAPI.getFirstRunStatus) {
     window.electronAPI.getFirstRunStatus().then((s) => {
       if (!s) return;
+      // Restarted after choosing a data folder: carry on where setup was.
+      if (s.resumeAt && computeScreenOrder().includes(s.resumeAt) && currentScreenName() === 'welcome') {
+        state.step = orderScreenToStep(s.resumeAt);
+        showScreen(s.resumeAt);
+      }
       // We can't read the keys back, but we can mark them as set if the env
       // file already has one and let the user advance without retyping.
       if (s.geminiConfigured) {

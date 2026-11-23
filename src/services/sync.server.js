@@ -5,7 +5,7 @@ const knowledge = require('./knowledge.service');
  * A small HTTP service on 127.0.0.1 that the JobFill extension posts to as you
  * apply, so the interview knowledge grows with every application:
  *
- *   GET  /v1/health        -> { ok, kbDir }
+ *   GET  /v1/health        -> { ok, kbDir, hasProfile }
  *   POST /v1/applications  { items: [{ title, company, link, status, appliedOn, ... }] }
  *   POST /v1/answers       { items: [{ question, answer, saved }] }
  *   POST /v1/profile       { profile }   (JobFill's profile; contact details are dropped)
@@ -64,7 +64,11 @@ function handler({ dir, logger } = {}) {
     if (req.method === 'OPTIONS') return send(res, 204, null, origin);
     const route = `${req.method} ${(req.url || '').split('?')[0]}`;
     try {
-      if (route === 'GET /v1/health') return send(res, 200, { ok: true, kbDir: dir || knowledge.kbDir() }, origin);
+      if (route === 'GET /v1/health') {
+        // hasProfile lets JobFill resend a profile this folder does not have
+        // (a reinstall, or JobAI pointed at another knowledge folder).
+        return send(res, 200, { ok: true, kbDir: dir || knowledge.kbDir(), hasProfile: !!knowledge.readProfile(dir || undefined) }, origin);
+      }
       if (route === 'POST /v1/profile') {
         const body = await readJson(req);
         knowledge.setProfile(body.profile, dir);

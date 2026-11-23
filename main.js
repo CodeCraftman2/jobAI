@@ -2,6 +2,43 @@ const path = require("path");
 const fs = require("fs");
 const { fileURLToPath } = require("url");
 const { app, BrowserWindow, globalShortcut, session, ipcMain, desktopCapturer, safeStorage } = require("electron");
+const dataLocation = require("./src/core/data-location");
+
+// ── Data folder ──
+// Settings, keys, the Whisper venv and models all live in userData. The user
+// can move it (installer, onboarding, Settings); the choice is a pointer file
+// in the default folder, or JOBAI_DATA_DIR. This must run before anything
+// reads userData, so it is the first thing main.js does.
+// The default is %APPDATA%\jobai, not Electron's own default (named after the
+// product name), so renaming the app never moves the data, and the installer
+// and setup scripts (which use %APPDATA%\jobai) agree with the app.
+const DEFAULT_DATA_DIR = path.join(app.getPath("appData"), "jobai");
+const DATA_DIR_INFO = (() => {
+  let wanted = null;
+  try {
+    const r = dataLocation.resolveDataDir({ defaultDir: DEFAULT_DATA_DIR });
+    wanted = r.dir;
+    fs.mkdirSync(r.dir, { recursive: true });
+    app.setPath("userData", r.dir);
+    return { ...r, error: null };
+  } catch (e) {
+    // The chosen folder is unreachable (unplugged drive, no permission): run
+    // from the default folder and say so in Settings instead of not starting.
+    try {
+      fs.mkdirSync(DEFAULT_DATA_DIR, { recursive: true });
+      app.setPath("userData", DEFAULT_DATA_DIR);
+    } catch (_) { /* keep Electron's default */ }
+    return { dir: DEFAULT_DATA_DIR, source: "default", wanted, error: e.message };
+  }
+})();
+
+// Folders the data must never move into: updates replace them and
+// uninstalling removes them.
+function forbiddenDataDirs() {
+  const out = [path.dirname(process.execPath)];
+  try { out.push(app.getAppPath()); } catch (_) { /* not ready */ }
+  return out;
+}
 
 // ── Resolve a stable .env location ──
 // In packaged builds process.cwd() is unstable and frequently read-only
@@ -86,6 +123,9 @@ app.commandLine.appendSwitch("disable-domain-reliability");
 app.commandLine.appendSwitch("no-pings");
 
 const logger = require("./src/core/logger").createServiceLogger("MAIN");
+if (DATA_DIR_INFO.error) {
+  logger.warn("Chosen data folder is unreachable; using the default", { wanted: DATA_DIR_INFO.wanted, error: DATA_DIR_INFO.error });
+}
 const config = require("./src/core/config");
 const FirstRunManager = require("./src/core/first-run");
 const secureStore = require("./src/core/secure-store");
@@ -767,11 +807,81 @@ class ApplicationController {
       return this.getSettings();
     });
 
+    // ── Data folder (onboarding + Settings) ──
+    ipcMain.handle("data-dir-info", () => ({
+      dir: app.getPath("userData"),
+      defaultDir: DEFAULT_DATA_DIR,
+      source: DATA_DIR_INFO.source,
+      // JOBAI_DATA_DIR wins over any choice made in the UI.
+      envOverride: !!process.env.JOBAI_DATA_DIR,
+      unreachable: DATA_DIR_INFO.error ? { dir: DATA_DIR_INFO.wanted, error: DATA_DIR_INFO.error } : null,
+    }));
+
+    ipcMain.handle("data-dir-browse", async (event, current) => {
+      const { dialog } = require("electron");
+      const win = BrowserWindow.fromWebContents(event.sender);
+      const r = await dialog.showOpenDialog(win, {
+        title: "Choose where Termax keeps its data",
+        defaultPath: current || app.getPath("userData"),
+        properties: ["openDirectory", "createDirectory", "promptToCreate"],
+      });
+      return r.canceled || !r.filePaths.length ? null : r.filePaths[0];
+    });
+
+    ipcMain.handle("data-dir-test", async (_event, dir) => {
+      try {
+        return await dataLocation.testDataDir(dir, {
+          forbidden: forbiddenDataDirs(),
+          currentDir: app.getPath("userData"),
+        });
+      } catch (e) {
+        return { ok: false, dir, checks: [{ name: "Test", ok: false, level: "error", detail: e.message }] };
+      }
+    });
+
+    // Copies the data to the new folder, points the app at it and restarts.
+    // `resume` names the onboarding screen to reopen after the restart.
+    ipcMain.handle("data-dir-apply", async (event, dir, opts = {}) => {
+      if (process.env.JOBAI_DATA_DIR) {
+        return { success: false, error: "JOBAI_DATA_DIR is set, so it decides the folder. Remove it to choose here." };
+      }
+      const send = (line) => {
+        try { if (!event.sender.isDestroyed()) event.sender.send("data-dir-progress", line); } catch (_) { /* window gone */ }
+      };
+      try {
+        const r = await dataLocation.switchDataDir({
+          from: app.getPath("userData"),
+          to: dir,
+          defaultDir: DEFAULT_DATA_DIR,
+          forbidden: forbiddenDataDirs(),
+          onProgress: send,
+        });
+        if (!r.changed) return { success: true, changed: false, dir: r.dir };
+        logger.info("Data folder changed", { dir: r.dir, files: r.files, failed: r.failed.length, usedExisting: r.usedExisting });
+        send(r.usedExisting ? "Using the data already in that folder." : `Copied ${r.files} files (${dataLocation.fmtBytes(r.bytes)}).`);
+        send("Restarting Termax…");
+        const args = process.argv.slice(1).filter((a) => !a.startsWith("--resume-onboarding="));
+        if (opts.resume) args.push(`--resume-onboarding=${String(opts.resume).replace(/[^a-z-]/gi, "")}`);
+        setTimeout(() => {
+          app.relaunch({ args });
+          app.quit();
+        }, 1200);
+        return { success: true, changed: true, ...r };
+      } catch (e) {
+        logger.warn("Data folder change failed", { error: e.message });
+        return { success: false, error: e.message, test: e.test || null };
+      }
+    });
+
     // First-run onboarding status — renderer can query to know whether
     // to show the welcome banner / prompt for API-key entry.
     ipcMain.handle("get-first-run-status", () => {
       try {
-        return this.firstRunManager.getStatus();
+        const resumeArg = process.argv.find((a) => a.startsWith("--resume-onboarding="));
+        return {
+          ...this.firstRunManager.getStatus(),
+          resumeAt: resumeArg ? resumeArg.split("=")[1] : null,
+        };
       } catch (e) {
         logger.warn("Failed to get first-run status", { error: e.message });
         return { needsOnboarding: false, error: e.message };

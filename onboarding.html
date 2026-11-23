@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Code</title>
+    <title>Welcome to Termax</title>
     <link rel="stylesheet" href="./assests/vendor/fontawesome/all.min.css">
     <style>
     /* Always the normal desktop arrow, even over text, inputs, buttons and selections */
@@ -816,7 +816,7 @@
         <div class="header">
             <div class="brand">
                 <div class="brand-dot"></div>
-                <span data-app-name>Code</span>
+                <span data-app-name>Termax</span>
             </div>
             <div class="header-right">
                 <div class="step-badge" id="stepBadge">Step 1 of 4</div>
@@ -841,7 +841,7 @@
             <section class="screen active" data-screen="welcome">
                 <div class="hero">
                     <div class="hero-logo"><i class="fas fa-bolt"></i></div>
-                    <h1 data-app-name="Welcome to {name}">Welcome to Code</h1>
+                    <h1 data-app-name="Welcome to {name}">Welcome to Termax</h1>
                     <p class="tagline">
                         Your AI-powered interview &amp; problem-solving copilot.
                         Let's get you set up in about a minute.
@@ -855,6 +855,38 @@
                         Get Started <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
+            </section>
+
+            <!-- SCREEN: Data folder -->
+            <section class="screen" data-screen="storage">
+                <h1>Where to keep your data</h1>
+                <p class="subtitle">
+                    Settings, saved API keys, the local Whisper install and its models go in one folder.
+                    Whisper can take a few GB, so pick a drive with room. You can change this later in Settings.
+                </p>
+
+                <div class="field">
+                    <label for="dataDirInput">Data folder</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-folder icon"></i>
+                        <input type="text" id="dataDirInput" class="input" spellcheck="false" autocomplete="off" placeholder="X:\integration\jobai">
+                    </div>
+                    <div class="hint">In use now: <span class="dd-current" id="dataDirCurrent"></span></div>
+                </div>
+
+                <div class="test-row">
+                    <button class="btn ghost" id="dataDirBrowseBtn" type="button">
+                        <i class="fas fa-folder-open"></i> Browse…
+                    </button>
+                    <button class="btn ghost" id="dataDirTestBtn" type="button" title="Writes 1 MB, reads it back and compares it, and checks free space. Leaves nothing behind.">
+                        <i class="fas fa-vial"></i> Test folder
+                    </button>
+                    <span id="dataDirStatus" class="dd-status"></span>
+                </div>
+                <div id="dataDirResults" class="dd-results"></div>
+                <div class="field"><div class="hint" id="dataDirMoveHint" style="display:none;">
+                    Continue copies anything already saved to the new folder and restarts setup there. The old folder is kept.
+                </div></div>
             </section>
 
             <!-- SCREEN 2: API Key -->
@@ -983,7 +1015,7 @@
             <section class="screen" data-screen="ocr">
                 <h1>Read the screen</h1>
                 <p class="subtitle">
-                    Not every AI model can look at a screenshot. When yours can't, <span data-app-name>Code</span> reads the text
+                    Not every AI model can look at a screenshot. When yours can't, <span data-app-name>Termax</span> reads the text
                     on screen with local OCR and sends it as text with your question. It runs on your
                     machine and needs a one-time download of about 2&nbsp;MB.
                 </p>
@@ -1226,6 +1258,7 @@
 
     <script src="./src/ui/curl-parser.js"></script>
     <script src="./src/ui/app-name.js"></script>
+    <script src="./src/ui/data-dir-panel.js"></script>
     <script src="./onboarding.js"></script>
 </body>
 </html>

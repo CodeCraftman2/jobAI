@@ -46,6 +46,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
 
+  // Data folder (onboarding + Settings)
+  getDataDirInfo: () => ipcRenderer.invoke('data-dir-info'),
+  browseDataDir: (current) => ipcRenderer.invoke('data-dir-browse', current),
+  testDataDir: (dir) => ipcRenderer.invoke('data-dir-test', dir),
+  applyDataDir: (dir, opts) => ipcRenderer.invoke('data-dir-apply', dir, opts || {}),
+  onDataDirProgress: (callback) => {
+    const wrapped = (_event, line) => {
+      try { callback(line); } catch (e) { console.error('onDataDirProgress error:', e); }
+    };
+    ipcRenderer.on('data-dir-progress', wrapped);
+    return () => ipcRenderer.removeListener('data-dir-progress', wrapped);
+  },
+
   // First-run onboarding
   getFirstRunStatus: () => ipcRenderer.invoke('get-first-run-status'),
   completeFirstRun: () => ipcRenderer.invoke('complete-first-run'),
